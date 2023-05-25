@@ -1,87 +1,59 @@
-var express = require('express');
-var session = require('express-session');
-var path = require('path');
-var login = require('./controllers/login_controller');
-var manager = require('./controllers/manager_controller');
-var mstaff = require('./controllers/mstaff_controller');
-var rec = require('./controllers/rec_controller');
-var nurse = require('./controllers/nurse_controller.js');
-var doctor = require('./controllers/doc_controller.js');
-var app = express();
-var expressValidator = require('express-validator');
-var flash = require('connect-flash');
-var session = require('express-session');
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
-var cookieParser = require('cookie-parser');
-var expressValidator = require('express-validator');
-var User = require('./controllers/db_controller.js');
-var landing = require('./controllers/landing_controller.js');
+
+(function ($) {
+    "use strict";
 
 
-// set up template engine
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
 
-//static files
-
-app.use(express.static('./public')); 
-
-// Parser
-
-app.use(cookieParser());
-
-// Express Session
-
-app.use(session({
-	secret: 'keyboard cat',
-	key: 'user', 
-	cookie: { maxAge: 3600000, secure: false },
-	saveUninitialized: true,
-	resave: true
-}));
-
-// Passport Init
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Express Validation
-
-app.use(expressValidator());
   
+  
+    /*==================================================================
+    [ Validate ]*/
+    var input = $('.validate-input .input100');
 
-// Connect Flash
+    $('.validate-form').on('submit',function(){
+        var check = true;
 
-app.use(flash());
+        for(var i=0; i<input.length; i++) {
+            if(validate(input[i]) == false){
+                showValidate(input[i]);
+                check=false;
+            }
+        }
 
-// fire controllers
-
-landing(app);
-login(app);
-manager(app);
-mstaff(app);
-rec(app);
-nurse(app);
-doctor(app);
-User(app);
-
-function ensureAuthenticated(req, res, next){
-		if(req.isAuthenticated()){
-			// AUTHENTICATED ==> continue
-			User.getUserTypeById(req.session.passport.user, function(err, result){
-				if(err) throw err;
-				
-					return next();
-				
-				
-			});
-		}
-		else{
-			// NOT AUTHENTICATED ==> goto login page
-			res.redirect('/login');
-		}
-	}
+        return check;
+    });
 
 
-app.listen(3000);
+    $('.validate-form .input100').each(function(){
+        $(this).focus(function(){
+           hideValidate(this);
+        });
+    });
+
+    function validate (input) {
+        if($(input).attr('type') == 'email' || $(input).attr('name') == 'email') {
+            if($(input).val().trim().match(/^([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{1,5}|[0-9]{1,3})(\]?)$/) == null) {
+                return false;
+            }
+        }
+        else {
+            if($(input).val().trim() == ''){
+                return false;
+            }
+        }
+    }
+
+    function showValidate(input) {
+        var thisAlert = $(input).parent();
+
+        $(thisAlert).addClass('alert-validate');
+    }
+
+    function hideValidate(input) {
+        var thisAlert = $(input).parent();
+
+        $(thisAlert).removeClass('alert-validate');
+    }
+    
+
+})(jQuery);
